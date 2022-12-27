@@ -1,6 +1,9 @@
 # Name:
 - Microservices API
 
+# Description:
+- A simple microservices backend api made for learning purposes. 
+
 # Technologies:
 ## Frontend
 ### Web
