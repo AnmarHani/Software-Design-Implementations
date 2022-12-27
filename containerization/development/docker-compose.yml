@@ -1,0 +1,82 @@
+services:
+  mongo-database:
+    image: mongo
+    restart: always
+    ports:
+      - 27071:27071
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8080:8081
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo-database
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=root
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=example
+      - ME_CONFIG_BASICAUTH_USERNAME=root
+      - ME_CONFIG_BASICAUTH_PASSWORD=example
+    depends_on: 
+      - mongo-database
+
+  redis-database:
+    image: redis
+    restart: always
+    ports:
+      - 6379:6379
+
+  auth-service:
+    build: 
+      context: ../../BackendServices/AuthenticationService
+      dockerfile: Dockerfile
+    image: anmarhani/microservices-test/auth-service:latest
+    ports:
+      - 8081:3100
+    environment:
+      MONGODB_URL: mongodb://root:example@mongo-database:27017/test?authSource=admin
+    depends_on:
+      - mongo-database
+    volumes:
+      - ../../BackendServices/AuthenticationService:/app
+
+  chat-service:
+    build: 
+      context: ../../BackendServices/ChatService
+      dockerfile: Dockerfile
+    image: anmarhani/microservices-test/chat-service:latest
+    ports:
+      - 8082:8000
+    tty: true
+    depends_on:
+      - redis-database
+    volumes:
+      - ../../BackendServices/ChatService:/app
+
+  products-service:
+    build: 
+      context: ../../BackendServices/ProductsService
+      dockerfile: Dockerfile
+    image: anmarhani/microservices-test/products-service:latest
+    ports:
+      - 8083:8080
+    depends_on:
+      - auth-service
+    # volumes:
+    #   - ../../BackendServices/ProductsService:/usr/src/app
+
+  # web-client:
+  #   build: 
+  #     context: ../../WebClient
+  #     dockerfile: Dockerfile
+  #   image: anmarhani/microservices-test/web-client:latest
+  #   ports:
+  #     - 3003:3000
+  #   depends_on:
+  #     - products-service
+  #     - chat-service

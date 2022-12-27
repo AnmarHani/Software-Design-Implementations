@@ -1,0 +1,56 @@
+# COMPOSE_DOCKER_CLI_BUILD=1 \                   
+# DOCKER_BUILDKIT=1 \
+# DOCKER_DEFAULT_PLATFORM=linux/amd64 \
+# build 
+# -> push -> run
+
+services:
+  redis-database:
+    image: redis
+    restart: always
+    ports:
+      - 6379:6379
+
+  auth-service:
+    build: 
+      context: ../../BackendServices/AuthenticationService
+      dockerfile: Dockerfile
+    image: <digitaloceanregistery>/auth-service:latest
+    platform: linux/amd64
+    ports:
+      - 8081:3100
+
+  chat-service:
+    build: 
+      context: ../../BackendServices/ChatService
+      dockerfile: Dockerfile
+    image: <digitaloceanregistery>/chat-service:latest
+    platform: linux/amd64
+    ports:
+      - 8082:8000
+    tty: true
+    depends_on:
+      - redis-database
+
+  products-service:
+    build: 
+      context: ../../BackendServices/ProductsService
+      dockerfile: Dockerfile
+    image: <digitaloceanregistery>/products-service:latest
+    platform: linux/amd64
+    ports:
+      - 8083:8080
+    depends_on:
+      - auth-service
+
+  # web-client:
+  #   build: 
+  #     context: ../../WebClient
+  #     dockerfile: Dockerfile
+  #   image: <digitaloceanregistery>/web-client:latest
+  #   platform: linux/amd64
+  #   ports:
+  #     - 8084:3000
+  #   depends_on:
+  #     - products-service
+  #     - chat-service

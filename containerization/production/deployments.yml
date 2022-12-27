@@ -1,0 +1,126 @@
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: mongo-database-deployment
+# spec:
+#   selector:
+#     matchLabels:
+#       app: mongo-database
+#   template:
+#     metadata:
+#       labels:
+#         app: mongo-database
+#     spec:
+#       containers:
+#       - name: mongo-database
+#         image: mongo
+#         resources:
+#           limits:
+#             memory: "128Mi"
+#             cpu: "500m"
+#         ports:
+#         - containerPort: 27071
+#         env:
+#         - name: MONGO_INITDB_ROOT_USERNAME
+#           value: root
+#         - name: MONGO_INITDB_ROOT_PASSWORD
+#           value: example
+# ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-database-deployment
+spec:
+  selector:
+    matchLabels:
+      app: redis-database
+  template:
+    metadata:
+      labels:
+        app: redis-database
+    spec:
+      containers:
+      - name: redis-database
+        image: redis
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service-deployment
+spec:
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+      - name: auth-service
+        image: <digitaloceanregistry>/auth-service:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+      imagePullSecrets:
+        - name: do-registry
+--- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: products-service-deployment
+spec:
+  selector:
+    matchLabels:
+      app: products-service
+  template:
+    metadata:
+      labels:
+        app: products-service
+    spec:
+      containers:
+      - name: products-service
+        image: <digitaloceanregistry>/products-service:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+      imagePullSecrets:
+        - name: do-registry     
+--- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-service-deployment
+spec:
+  selector:
+    matchLabels:
+      app: chat-service
+  template:
+    metadata:
+      labels:
+        app: chat-service
+    spec:
+      containers:
+      - name: chat-service
+        image: <digitaloceanregistry>/chat-service:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m" # half of cpu core
+        ports:
+        - containerPort: 8000
+      imagePullSecrets:
+        - name: do-registry
